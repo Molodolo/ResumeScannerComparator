@@ -45,7 +45,7 @@ Resume Scanner is a Python script that compares a resume against a job descripti
 ######## Usage
 
 1. Run the script:
-  python resume_scanner.py
+  python resumeScanner.py
 
 2. Enter the URL of the job posting when prompted.
 
