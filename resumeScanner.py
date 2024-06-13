@@ -12,7 +12,7 @@ def extract_text_from_pdf(file_path):
         text = ""
         for page in reader.pages:
             text += page.extract_text()
-        return text
+    return text
 
 
 def extract_text_from_docx(file_path):
@@ -24,9 +24,20 @@ def extract_text_from_docx(file_path):
 
 
 def extract_keywords(text):
-    doc = nlp(text)
-    keywords = [token.text.lower()
-                for token in doc if not token.is_stop and token.is_alpha]
+    doc = nlp(text.lower())
+
+    # Remove stop words and punctuation
+    words = [token.text for token in doc if not token.is_stop and not token.is_punct]
+
+    # Extract entities
+    entities = [ent.text for ent in doc.ents]
+
+    # Extract noun chunks
+    noun_chunks = [chunk.text for chunk in doc.noun_chunks]
+
+    # Combine words, entities, and noun chunks
+    keywords = list(set(words + entities + noun_chunks))
+
     return keywords
 
 
@@ -48,14 +59,13 @@ def process_resume(resume_file, job_keywords):
 
     resume_keywords = extract_keywords(resume_text)
     matching_score = calculate_matching_score(resume_keywords, job_keywords)
-    return matching_score
+    return matching_score, resume_keywords
 
 
 def download_job_description(url):
     response = requests.get(url)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
-
         # Find the requirements or qualifications section
         requirements_section = None
         for header in soup.find_all(["h2", "h3", "h4", "h5", "h6"]):
@@ -69,7 +79,9 @@ def download_job_description(url):
             return requirements_text
         else:
             print("Requirements or qualifications section not found on the webpage.")
-            return None
+            print("Extracting keywords from the entire webpage instead.")
+            webpage_text = soup.get_text()
+            return webpage_text
     else:
         print(
             f"Failed to download the webpage. Status code: {response.status_code}")
@@ -78,7 +90,7 @@ def download_job_description(url):
 
 def main():
     global nlp
-    nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_lg")
 
     job_url = input("Enter the URL of the job webpage: ")
     job_description = download_job_description(job_url)
@@ -91,26 +103,17 @@ def main():
 
         resume_file = input("Enter the path to the resume file: ")
         file_extension = os.path.splitext(resume_file)[1].lower()
+        matching_score, resume_keywords = process_resume(
+            resume_file, job_keywords)
 
-        matching_score = process_resume(resume_file, job_keywords)
         if matching_score is not None:
             print("Matching Score:", matching_score)
-            if file_extension == ".pdf":
-                resume_keywords = extract_keywords(
-                    extract_text_from_pdf(resume_file))
-                print("Resume Keywords (PDF):")
-                print(resume_keywords)
-                print()
-                print("Matching Keywords:")
-                print(set(resume_keywords) & set(job_keywords))
-            elif file_extension == ".docx":
-                resume_keywords = extract_keywords(
-                    extract_text_from_docx(resume_file))
-                print("Resume Keywords (DOCX):")
-                print(resume_keywords)
-                print()
-                print("Matching Keywords:")
-                print(set(resume_keywords) & set(job_keywords))
+            print()
+            print("Resume Keywords:")
+            print(resume_keywords)
+            print()
+            print("Matching Keywords:")
+            print(set(resume_keywords) & set(job_keywords))
     else:
         print("Failed to retrieve the job description.")
 
