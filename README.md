@@ -24,7 +24,7 @@ Resume Scanner is a Python script that compares a resume against a job descripti
 1. Clone the repository:
 2. Navigate to the project directory:
 3. Create a virtual environment (optional but recommended):
-  python -m venv venv
+python -m venv venv
 
 4. Activate the virtual environment:
 - For macOS and Linux:
