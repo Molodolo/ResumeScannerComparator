@@ -44,7 +44,9 @@ Resume Scanner is a Python script that compares a resume against a job descripti
    pip install -r requirements.txt
    ```
 7. Download the spaCy English model:
-  python -m spacy download en_core_web_lg
+   ```
+   python -m spacy download en_core_web_lg
+   ```
 
 ######## Usage
 
